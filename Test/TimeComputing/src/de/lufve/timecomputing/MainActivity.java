@@ -93,22 +93,22 @@ public class MainActivity extends Activity {
 
 	public void onCmdPlus(View v)
 	{
-		input( '+');
+		
 	}
 
 	public void onCmdMinus(View v)
 	{
-		input('-');
+		
 	}
 
 	public void onCmdMultiply(View v)
 	{
-		input('*');
+		
 	}
 
 	public void onCmdDivide(View v)
 	{
-		input('/');
+		
 	}
 
 	public void onCmdPoint(View v)
@@ -118,12 +118,12 @@ public class MainActivity extends Activity {
 
 	public void onCmdColon(View v)
 	{
-		input(':');
+		
 	}
 
 	public void onCmdResult(View v)
 	{
-		input('=');
+		
 	}
 
 	private void input(char c)
