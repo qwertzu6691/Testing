@@ -93,41 +93,51 @@ public class MainActivity extends Activity {
 
 	public void onCmdPlus(View v)
 	{
-		
+		opration(Commands.PLUS);
 	}
 
 	public void onCmdMinus(View v)
 	{
-		
+		opration(Commands.MINUS);
 	}
 
 	public void onCmdMultiply(View v)
 	{
-		
+		opration(Commands.MULTIPLY);
 	}
 
 	public void onCmdDivide(View v)
 	{
-		
+		opration(Commands.DIVIDE);
 	}
 
 	public void onCmdPoint(View v)
 	{
-		input('.');
+		input(Commands.POINT);
 	}
 
 	public void onCmdColon(View v)
 	{
-		
+		input(Commands.COLON);
 	}
 
 	public void onCmdResult(View v)
 	{
-		
+		opration(Commands.RESULT);
 	}
 
 	private void input(char c)
 	{
-		
+
+	}
+
+	private void input(Commands cmd)
+	{
+
+	}
+
+	private void opration(Commands plus)
+	{
+
 	}
 }
