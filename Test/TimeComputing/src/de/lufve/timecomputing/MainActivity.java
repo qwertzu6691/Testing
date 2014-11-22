@@ -138,6 +138,9 @@ public class MainActivity extends Activity {
 
 	private void opration(Commands plus)
 	{
-
+		boolean condition = false;
+		if (!condition) {
+			
+		}
 	}
 }
