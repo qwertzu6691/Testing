@@ -128,7 +128,8 @@ public class MainActivity extends Activity {
 
 	private void input(char c)
 	{
-
+		int i=0;
+		mInput[i]=c;
 	}
 
 	private void input(Commands cmd)
@@ -143,4 +144,6 @@ public class MainActivity extends Activity {
 			
 		}
 	}
+	
+	
 }
