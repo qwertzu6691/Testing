@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 public class MainActivity extends Activity {
 
@@ -20,6 +22,16 @@ public class MainActivity extends Activity {
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		Button b = (Button) findViewById(R.id.button3);
+		b.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v)
+			{
+				// TODO
+
+			}
+		});
 	}
 
 	@Override
@@ -128,8 +140,8 @@ public class MainActivity extends Activity {
 
 	private void input(char c)
 	{
-		int i=0;
-		mInput[i]=c;
+		int i = 0;
+		mInput[i] = c;
 	}
 
 	private void input(Commands cmd)
@@ -141,9 +153,36 @@ public class MainActivity extends Activity {
 	{
 		boolean condition = false;
 		if (!condition) {
-			
+
 		}
 	}
-	
-	
+
+	public void onCllick(View v)
+	{
+		switch (v.getId()) {
+			case R.id.button1:
+				break;
+			case R.id.button2:
+				break;
+			case R.id.button3:
+				break;
+			case R.id.cmdPlus:
+				break;
+			case R.id.button5:
+				break;
+			case R.id.button6:
+				break;
+			case R.id.button7:
+				break;
+			case R.id.button8:
+				break;
+			case R.id.button9:
+				break;
+			case R.id.button20:
+				break;
+			default:
+				break;
+		}
+	}
+
 }
