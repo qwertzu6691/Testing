@@ -5,6 +5,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="division">\u00F7</string>
+    <string name="clear">\u237A</string>
     
 
 </resources>
