@@ -1,13 +1,13 @@
 package de.lufve.timecomputing;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.EnumSet;
-import java.util.Iterator;
 import java.util.List;
 
 import android.app.Activity;
+import android.text.TextUtils;
 import android.widget.TextView;
+import de.lufve.timecomputing.util.BasicCommands;
+import de.lufve.timecomputing.util.Utils;
 
 public class CalcDisplay {
 
@@ -16,17 +16,32 @@ public class CalcDisplay {
 	private List <Character> mList = new ArrayList <Character>();
 	private TextView mViewDisplay;
 	private TextView mShortHistory;
-	private long mParm1;
-	private long mParm2;
-	private long mResult;
+	private InputNumber mParm1;
+	private InputNumber mParm2;
+	private InputNumber mResult;
+	// private String mInput;
 	private BasicCommands mComm = BasicCommands.NOTHING;
-	private boolean mTime;
+	private boolean mIsTimeOp;
 	private EventListener mListener = null;
+	private boolean mNewLine = false;
+	private static final char EMPTY = Utils.EMPTY;
+	private static final char MINUS = Utils.MINUS;
 
-	private CalcDisplay() {
+	// private static final String mReg = "hmsn";
+	// private static final String mRegTime =
+	// "^([0-9][1-9]?h)?([0-9][1-9]?m)?([0-9][1-9]?s{1})?([0-9]{0,3})?$";
+
+	private CalcDisplay(Activity parent) {
+		this.mParent = parent;
 		mViewDisplay = (TextView) mParent.findViewById(R.id.txtDisplay);
 		mShortHistory = (TextView) mParent.findViewById(R.id.txtMemorryField);
+		mList.add(EMPTY);
 	}
+
+	// {
+	// Pattern.compile(mReg);
+	// Pattern.compile(mRegTime);
+	// }
 
 	public void setEventListener(EventListener listener) {
 		mListener = listener;
@@ -35,142 +50,133 @@ public class CalcDisplay {
 	public static CalcDisplay getInstance(Activity parent) {
 		if (parent == null) throw new NullPointerException();
 		if (mInstance == null) {
-			mInstance = new CalcDisplay();
-			mInstance.mParent = parent;
+			mInstance = new CalcDisplay(parent);
+			// mInstance.mParent = parent;
 		}
 		return mInstance;
 
 	}
 
 	public void addChar(Character ch) {
-		mList.add(ch);
+		if (mNewLine) {
+			String parm = mResult.toString();
+			moveNumberToCache(parm);
+			mNewLine = false;
+			mIsTimeOp = false;
+			mViewDisplay.setText(Utils.ZERO);
+		}
+
+		String s=TextUtils.join("", mList);
+		if (Utils.verifyIsTimeString(TextUtils.join("", mList) + ch)) {
+			mList.add(ch);
+			updateDisplay(ch);
+		}
+	}
+
+	public void addTimeChar(Character ch) {
+		if (mList.size()==1) {
+			addChar('0');
+		}
+		mNewLine=false;
+		mIsTimeOp = true;
+		addChar(ch);
+	}
+
+	// void verifyInput(List<Character> list) {
+	// // mTime = true;
+	// // if (!mTime) { throw new UnsupportedOperationException(); }
+	// //
+	// // boolean b;
+	// mTime = mPattr.matcher(TextUtils.join("", list)).matches();
+	// }
+	//
+	// static boolean verifyInputOrder(List<Character> list,Character inputChar)
+	// {
+	// return mPattrTimeInput.matcher(TextUtils.join("", list) +
+	// inputChar).matches();
+	// }
+
+	public boolean mustBeTimeInput() {
+		return mIsTimeOp;
 	}
 
 	public void addBasicOperation(final BasicCommands op) {
 
-		BasicCommands opTMP = BasicCommands.NOTHING;
-
-		// if (mComm == BasicCommands.NIX) {
-		// mComm = op;
-		// moveNumberToCache();
-		// }
-		// else {
-		// if (op.isOperations() && mComm.isOperations()) {
-		//
-		// } else if (mComm.isOperations() && op == BasicCommands.RESULT) {
-		//
-		// }
-		//
-		// }
-
-		String res = null;
 		String frm = null;
-		if (op.isErasing()) {
-			deleteInput(op);
-		} else if (mComm.isOperations()) {
-			verivyInput();
-			calc();
-			res = convertNumberToString(mResult);
 
+		if (mComm.isOperations()) {
+			mIsTimeOp = Utils.isTimeInput(mList);
+			calc();
 			if (op.isOperations()) {
 				// res = res + op.getValue();
-				frm = formatString(res, mComm);
-				updateDisplay(frm, "");
+				frm = formatHistoryString(op, mResult.toString());
+				moveNumberToCache(frm);
+				updateDisplay(Utils.ZERO);
+
 			}
 			else if (op == BasicCommands.RESULT) {
-				frm = op.getValue() + res;
-				frm = formatString(mComm, mParm1, mParm2);
-				updateDisplay(frm, format(res));
+				// frm = op.getValue() + res;
+				frm = formatHistoryString(mComm, mParm1.toString(), mParm2.toString());
+				moveNumberToCache(frm);
+				updateDisplay(BasicCommands.RESULT.getValue() + " " + mResult.toString());
 			}
+			mNewLine = true;
 			mComm = op;
 			mParm1 = mResult;
-			mParm2 = 0;
-			mResult = 0;
+			mParm2.clear();
+			mResult.clear();
+
 			// mListener.onNewLine(mShortHistory.getText().toString());
-			updateDisplay(frm, "");
+			// updateDisplay(frm, "");
 
 		} else {
-			
-			moveNumberToCache();
+			mIsTimeOp = Utils.isTimeInput(mList);
+			mComm = op;
+			mParm1 = new InputNumber(mList);
+			frm = formatHistoryString(op, mParm1.toString());
+			moveNumberToCache(frm);
+			updateDisplay(Utils.ZERO);
+		}
+		mList.clear();
+		mList.add(EMPTY);
+	}
+
+	private String formatHistoryString(BasicCommands comm, String... parm) {
+		StringBuilder build = new StringBuilder();
+		String tmp1 = parm[0];
+		build.append(tmp1);
+		build.append(comm.getValue());
+		if (parm.length > 1) {
+			String tmp2 = parm[1];
+			build.append(tmp2);
 		}
 
+		return build.toString();
 	}
 
-	private String format(String res) {
-		// TODO
-		String str = null;
-		return str;
+	// private String formatHistoryString(BasicCommands comm, long... parm) {
+	// return null;
+	//
+	// }
+
+	private String formatHistoryString(BasicCommands comm, String parm) {
+		StringBuilder build = new StringBuilder();
+		build.append(parm);
+		build.append(comm.getValue());
+		return build.toString();
 	}
 
-	private String formatString(BasicCommands comm, double... parm) {
-		// TODO
-		String str = null;
-		return str;
-	}
-	private String formatString(BasicCommands comm, long... parm) {
-		// TODO
-		String str = null;
-		return str;
-	}
-
-	private String formatString(String string, BasicCommands comm) {
-		String str = null;
-		return str;
-
-		// TODO
-
-	}
-
+	@SuppressWarnings("incomplete-switch")
 	private void calc() {
-		if (mTime) {
-			mParm2 = convertStringToTime();
-			calcTime(mParm1, mParm2, mComm);
-		}
-
-	}
-
-	private void verivyInput() {
-		mTime = true;
-		if (!mTime) { throw new UnsupportedOperationException(); }
-
-		// TODO
-
-	}
-
-	private void clearCache() {
-		String lastLine = null;
-
-		mListener.onNewLine(lastLine);
-
-	}
-
-	private void moveNumberToCache() {
-		String d;
-		d="d";
-	}
-
-	private void deleteInput(BasicCommands op) {
-		if (op == BasicCommands.CLEAR) {
-			mViewDisplay.setText("");
-		} else {
-			CharSequence text = mViewDisplay.getText();
-			mViewDisplay.setText(text.subSequence(0, text.length() - 2));
-		}
-
-	}
-
-	private void updateDisplay(String cache, String input) {
-
-		String lastLine = null;
-		mListener.onNewLine(lastLine);
-	}
-
-	private long calcTime(long part1, long part2, BasicCommands op) {
-		long res = 0;
-		switch (op) {
+		mParm2 = new InputNumber(mList);
+		// double result = calcTime((long) mParm1.getValue(), (long)
+		// mParm2.getValue(), mComm);
+		double part1 = mParm1.getValue();
+		double part2 = mParm2.getValue();
+		double res = 0;
+		switch (mComm) {
 			case PLUS:
 				res = part1 + part2;
-
 				break;
 			case MINUS:
 				res = part1 - part2;
@@ -179,128 +185,56 @@ public class CalcDisplay {
 				res = part1 * part2;
 				break;
 			case DIVIDE:
-				if (part2 == 0) {
-					// error massage: teilen durch null ist nicht möglich
-					throw new ArithmeticException("divide by zero is not possible");
-				}
-				else {
-					res = part1 / part2;
-				}
-				break;
-			default:
+				if (part2 == 0) throw new ArithmeticException("divide by zero is not possible");
+				res = part1 / part2;
 				break;
 		}
-
-		return res;
+		mResult = new InputNumber(res, mIsTimeOp ? Utils.TIME : Utils.DOUBLE);
 	}
 
-	private long convertStringToTime() {
-		StringBuilder s = new StringBuilder();
-		long miliSecond = 0;
-		for (Iterator <Character> iterator = mList.iterator(); iterator.hasNext();) {
-			Character character = (Character) iterator.next();
-			if (character == 'h') {
-				miliSecond += Integer.parseInt(s.toString()) * 3600 * 1000;
-				s = new StringBuilder();
-			}
-			else if (character == 'm') {
-				miliSecond += Integer.parseInt(s.toString()) * 60 * 1000;
-				s = new StringBuilder();
+	// private void clearCache() {
+	String lastLine = null;
 
-			} else if (character == 's') {
-				miliSecond += Integer.parseInt(s.toString()) * 1000;
-				s = new StringBuilder();
+	//
+	// mListener.onNewLine(lastLine);
+	//
+	// }
 
-			} else if (character == 'n') {
-				miliSecond += Integer.parseInt(s.toString());
-				s = new StringBuilder();
-
-			} else if (Character.isDigit(character)) {
-				s.append(character);
-			}
-		}
-		if (miliSecond == 0) {
-			try {
-				miliSecond = Integer.parseInt(s.toString());
-			}
-			catch (NumberFormatException e) {}
-
-		}
-		mList.clear();
-		return miliSecond;
+	private void moveNumberToCache(String parm) {
+		String lastLine = mShortHistory.getText().toString();
+		if (!lastLine.isEmpty()) mListener.onNewLine(lastLine);
+		mShortHistory.setText(parm);
 	}
 
-	private String convertNumberToString(double number) {
-		String str = null;
-		return str;
+	private void deleteInput(BasicCommands op) {
+		if (op == BasicCommands.CLEAR) {
+			mViewDisplay.setText("");
+			mList.clear();
+		} else {
+			// char c = mList.remove(mList.size() - 1);
+			mIsTimeOp = Utils.isTimeInput(mList);
+			mViewDisplay.setText(TextUtils.join("", mList));
+		}
 
 	}
 
-	private String convertNumberToString(long number) {
-		String str = null;
-		if (mTime) {
-			str = convertTimeToString(number);
+	private void updateDisplay(Object input) {
+		if (input instanceof String) {
+			mViewDisplay.setText((String) input);
 		}
-		return str;
+		else if (input instanceof Character) {
+			mViewDisplay.append(input.toString());
+		}
 
 	}
 
-	private String convertTimeToString(long time) {
-
-		long milSecInHour = 3600 * 1000;
-		long milSecInMinute = 60 * 1000;
-		long hour = 0;
-		long minute = 0;
-		long second = 0;
-		long miliSecond = 0;
-		long tmpTime = time;
-
-		if (milSecInHour < time) {
-			hour = tmpTime / milSecInHour;
-			tmpTime = time % milSecInHour;
-		}
-		if (tmpTime > 0) {
-			minute = tmpTime / milSecInMinute;
-			tmpTime = tmpTime % milSecInMinute;
-		}
-		if (tmpTime > 0) {
-			second = tmpTime / 1000;
-			tmpTime = tmpTime % 1000;
-		}
-
-		miliSecond = tmpTime;
-
-		return hour + "h " + minute + "m " + second + "m " + miliSecond + "ms";
-
+	public void resumeInput(BasicCommands op) {
+		deleteInput(op);
 	}
 
-	private boolean verivyInput(int type, int time) {
-		switch (type) {
-			case Calendar.HOUR:
-				return time <= 24;
-			case Calendar.MINUTE:
-			case Calendar.SECOND:
-				return time <= 60;
-		}
-		return false;
-	}
-
-	private void outputResult(boolean operator) {
-		long result = 0;
-		String s = null;
-		try {
-			if (mTime) {
-				// TODO
-				// result = calcTime(convertStringToTime());
-				s = convertNumberToString(result);
-				// updateDisplay(s, false, operator);
-			}
-
-		}
-		catch (Exception e) {
-			//
-		}
-
+	public void setPlusMinus() {
+		char c = mList.get(0);
+		mList.set(0, (c == MINUS ? EMPTY : MINUS));
 	}
 
 }

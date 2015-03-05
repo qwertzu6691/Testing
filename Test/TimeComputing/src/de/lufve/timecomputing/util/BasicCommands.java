@@ -1,16 +1,10 @@
-package de.lufve.timecomputing;
+package de.lufve.timecomputing.util;
 
 import java.util.EnumSet;
 
-public abstract class Constans {
-	static final char EMPTY = '\u0000';
-	static final char DELETE = '\u2421';
-	static final char DIVISHION = '\u00F7';
-}
+public enum BasicCommands {
 
-enum BasicCommands {
-
-	NOTHING('A'), POINT('.'), COLON(','), PLUS('+'), MINUS('-'), DIVIDE(Constans.DIVISHION),
+	NOTHING('A'), POINT('.'), COLON(','), PLUS('+'), MINUS('-'), DIVIDE(Utils.DIVISHION),
 	MULTIPLY('*'), RESULT('='), DELETE('C'), CLEAR('R');
 
 	private Character mC;
@@ -44,7 +38,6 @@ enum BasicCommands {
 	}
 
 	public String getValue() {
-		// TODO Auto-generated method stub
 		return mC.toString();
 	}
 }
