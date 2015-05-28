@@ -2,6 +2,7 @@ package de.lufve.timecomputing;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 
 import android.app.Activity;
@@ -9,14 +10,19 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Switch;
 import de.lufve.timecomputing.util.BasicCommands;
+import de.lufve.timecomputing.util.DisplayEventListener;
 
 public class MainActivity extends Activity {
 
-	private List <Character> mList = new ArrayList <Character>();
-	private List <String> mHistory = new ArrayList <String>();
+//	private List <Character> mList = new ArrayList <Character>();
+//	private List <String> mHistory = new ArrayList <String>();
 
 	private CalcDisplay mDisplay;
+	private CalcPipeLine mCalcPipeLine;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -26,15 +32,24 @@ public class MainActivity extends Activity {
 		// mViewDisplay = (TextView) findViewById(R.id.txtDisplay);
 		// mShortHistory = (TextView) findViewById(R.id.txtMemorryField);
 		mDisplay = CalcDisplay.getInstance(this);
-		mDisplay.setEventListener(new EventListener() {
+		mCalcPipeLine = CalcPipeLine.getInstance(this);
+		mCalcPipeLine.setDisplay(mDisplay);
+
+		mDisplay.setEventListener(new DisplayEventListener() {
 
 			@Override
 			public void onNewLine(String lastLine) {
 				// mTime = isTimeInput;
 				// setTimeButtonsEnabled(isTimeInput);
-				mHistory.add(lastLine);
+//				mHistory.add(lastLine);
 				setTimeButtonsEnabled(true);
-//				setPointButtonEnable(true);
+				// setPointButtonEnable(true);
+			}
+
+			@Override
+			public void onNumberRetrieve(String archivedValue) {
+				mCalcPipeLine.addOperand(archivedValue);
+				
 			}
 
 		});
@@ -44,7 +59,17 @@ public class MainActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
+//		final MenuItem toggleservice = menu.findItem(R.id.switchForActionBar);
+//		final Switch actionView = (Switch) toggleservice.getActionView();
+//		actionView.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+//
+//			@Override
+//			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//				mCalcPipeLine.setMultiPart(!isChecked);
+//			}
+//
+//		});
+		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
@@ -53,9 +78,10 @@ public class MainActivity extends Activity {
 		if (id == R.id.action_settings) { return true; }
 		return super.onOptionsItemSelected(item);
 	}
-	public void onClickN(View v){
+
+	public void onClickN(View v) {
 		System.out.println("CLICK");
-//		onClickNum(v);
+		// onClickNum(v);
 	}
 
 	public void onClickNum(View v) {
@@ -68,48 +94,37 @@ public class MainActivity extends Activity {
 		switch (v.getId()) {
 			case R.id.cmd0:
 				ch = '0';
-
 				break;
 			case R.id.cmd1:
 				ch = '1';
-
 				break;
 			case R.id.cmd2:
 				ch = '2';
-
 				break;
 			case R.id.cmd3:
 				ch = '3';
-
 				break;
 			case R.id.cmd4:
 				ch = '4';
-
 				break;
 			case R.id.cmd5:
 				ch = '5';
-
 				break;
 			case R.id.cmd6:
 				ch = '6';
-
 				break;
 			case R.id.cmd7:
 				ch = '7';
-
 				break;
 			case R.id.cmd8:
 				ch = '8';
-
 				break;
 			case R.id.cmd9:
 				ch = '9';
-
 				break;
 
 		}
-		// updateDisplay(String.valueOf(mLastChar), true, false);
-		mDisplay.addChar(ch);
+		mCalcPipeLine.mInputNumber.addCharachter(ch);
 	}
 
 	public void onClickTButton(View v) {
@@ -117,42 +132,28 @@ public class MainActivity extends Activity {
 		switch (v.getId()) {
 			case R.id.cmdHour:
 				ch = 'h';
-				// mList.add(mLastChar);
-				// TODO later
-				if (!verivyInput(Calendar.HOUR, 0)) sendError(Calendar.HOUR);
 				break;
 			case R.id.cmdMinute:
 				ch = 'm';
-				// mList.add(mLastChar);
-				// TODO later
-				if (!verivyInput(Calendar.MINUTE, 0)) sendError(Calendar.MINUTE);
 				break;
 			case R.id.cmdSekunde:
 				ch = 's';
-				// mList.add(mLastChar);
-				// TODO later
-				if (!verivyInput(Calendar.SECOND, 0)) sendError(Calendar.SECOND);
 				break;
 			case R.id.cmdMs:
 				ch = 'n';
-				// mList.add('n');
-				break;
-			default:
-				ch = 0;
 				break;
 		}
 		// mTime = true;
-		setPointButtonEnable(false);
-		mDisplay.addTimeChar(ch);
+		mCalcPipeLine.mInputNumber.addTimeCharachter(ch);
 	}
 
 	public void onClickErase(View v) {
 		switch (v.getId()) {
 			case R.id.cmdDelete:
-				mDisplay.resumeInput(BasicCommands.DELETE);
+				mCalcPipeLine.mInputNumber.deleteCarachter();
 				break;
 			case R.id.cmdClear:
-				mDisplay.resumeInput(BasicCommands.CLEAR);
+				mCalcPipeLine.clear();
 				break;
 		}
 
@@ -164,51 +165,32 @@ public class MainActivity extends Activity {
 
 	public void onClickOperation(View v) {
 		BasicCommands op = BasicCommands.NOTHING;
-		// char lastChar = 0;
-		// if (mComm != BasicCommands.NOTHING) {
-		// outputResult(true);
-		// }
 
-		boolean isTime = mDisplay.mustBeTimeInput();
+//		boolean isTime = mDisplay.mustBeTimeInput();
 		switch (v.getId()) {
 			case R.id.cmdPlus:
 				op = BasicCommands.PLUS;
-				setTimeButtonsEnabled(isTime);
-				setPointButtonEnable(!isTime);
-				// lastChar = '+';
+//				setTimeButtonsEnabled(isTime);
+				// setPointButtonEnable(!isTime);
 				break;
 			case R.id.cmdMinus:
-				if (mList.isEmpty()) {
-					mDisplay.addChar('-');
-				} else {
-					op = BasicCommands.MINUS;
-					setTimeButtonsEnabled(isTime);
-					setPointButtonEnable(!isTime);
-				}
-				// lastChar = '-';
+				op = BasicCommands.MINUS;
+//				setTimeButtonsEnabled(isTime);
+				// setPointButtonEnable(!isTime);
 				break;
 			case R.id.cmdMal:
 				op = BasicCommands.MULTIPLY;
-				setTimeButtonsEnabled(!isTime);
-				setPointButtonEnable(isTime);
-				// lastChar = '*';
+//				setTimeButtonsEnabled(!isTime);
+				// setPointButtonEnable(isTime);
 				break;
 			case R.id.cmdDurch:
 				op = BasicCommands.DIVIDE;
-				setTimeButtonsEnabled(!isTime);
-				setPointButtonEnable(isTime);
-				// String s = getString(R.string.division);
-				// lastChar = s.charAt(0);
-				// mLastChar = '/';
+//				setTimeButtonsEnabled(!isTime);
+				// setPointButtonEnable(isTime);
 				break;
-		// case R.id.cmdGleich:
-		// mComm=Commands.RESULT;
-		// mComm = Commands.NIX;
-		// break;
-
 		}
 
-		mDisplay.addBasicOperation(op);
+		mCalcPipeLine.addOperator(op);
 
 	}
 
@@ -217,8 +199,9 @@ public class MainActivity extends Activity {
 	}
 
 	public void onClickPlusMinus(View v) {
-		mDisplay.setPlusMinus();
+		mCalcPipeLine.mInputNumber.setPlusMinus();
 	}
+
 	private void setTimeButtonsEnabled(boolean b) {
 
 		findViewById(R.id.cmdHour).setEnabled(b);
@@ -232,14 +215,9 @@ public class MainActivity extends Activity {
 	}
 
 	public void onClickEqual(View v) {
-		mDisplay.addBasicOperation(BasicCommands.RESULT);
-		// mComm = BasicCommands.RESULT;
-		// outputResult(false);
-		// mComm = BasicCommands.NOTHING;
-		// setButtonsEnabled(true);
-		// mTime = false;
+		mCalcPipeLine.doCalculation();
 	}
-
+}
 	// private void outputResult(boolean operator) {
 	// long result = 0;
 	// String s = null;
@@ -308,42 +286,7 @@ public class MainActivity extends Activity {
 	// return res;
 	// }
 
-	// private int convertStringToTime() {
-	// StringBuilder s = new StringBuilder();
-	// int miliSecond = 0;
-	// for (Iterator <Character> iterator = mList.iterator();
-	// iterator.hasNext();) {
-	// Character character = (Character) iterator.next();
-	// if (character == 'h') {
-	// miliSecond += Integer.parseInt(s.toString()) * 3600 * 1000;
-	// s = new StringBuilder();
-	// }
-	// else if (character == 'm') {
-	// miliSecond += Integer.parseInt(s.toString()) * 60 * 1000;
-	// s = new StringBuilder();
-	//
-	// } else if (character == 's') {
-	// miliSecond += Integer.parseInt(s.toString()) * 1000;
-	// s = new StringBuilder();
-	//
-	// } else if (character == 'n') {
-	// miliSecond += Integer.parseInt(s.toString());
-	// s = new StringBuilder();
-	//
-	// } else if (Character.isDigit(character)) {
-	// s.append(character);
-	// }
-	// }
-	// if (miliSecond == 0) {
-	// try {
-	// miliSecond = Integer.parseInt(s.toString());
-	// }
-	// catch (NumberFormatException e) {}
-	//
-	// }
-	// mList.clear();
-	// return miliSecond;
-	// }
+	 
 
 	// private String convertToString(long duration) {
 	//
@@ -374,14 +317,14 @@ public class MainActivity extends Activity {
 	//
 	// }
 
-	private boolean verivyInput(int type, int time) {
-		switch (type) {
-			case Calendar.HOUR:
-				return time <= 24;
-			case Calendar.MINUTE:
-			case Calendar.SECOND:
-				return time <= 60;
-		}
-		return false;
-	}
-}
+	// private boolean verivyInput(int type, int time) {
+	// switch (type) {
+	// case Calendar.HOUR:
+	// return time <= 24;
+	// case Calendar.MINUTE:
+	// case Calendar.SECOND:
+	// return time <= 60;
+	// }
+	// return false;
+	// }
+

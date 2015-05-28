@@ -2,7 +2,7 @@ package de.lufve.timecomputing;
 
 import de.lufve.timecomputing.util.Utils;
 
-class CalcNumber {
+public class CalcNumber {
 	private double mValue = 0;
 	private int mTypeNumber = Utils.DOUBLE;
 	// private String _string = null;
@@ -13,9 +13,9 @@ class CalcNumber {
 	// mValue = convertInputToNumber(input);
 	// }
 
-	public CalcNumber(double parm, int typeNumber) {
+	public CalcNumber(double number, int typeNumber) {
 		this.mTypeNumber = typeNumber;
-		this.mValue = parm;
+		this.mValue = number;
 	}
 
 	@SuppressWarnings("unused")
@@ -25,8 +25,16 @@ class CalcNumber {
 	// mValue = convertInputToNumber(input);
 	// }
 
-	public int getTypeNumber() {
+	public int getNumberType() {
 		return mTypeNumber;
+	}
+
+	public String toString() {
+		if (mTypeNumber == Utils.TIME) {
+			return Utils.formatTimeString((long) mValue);
+		} else {
+			return Double.toString(mValue);
+		}
 	}
 
 	// public String toString() {

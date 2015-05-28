@@ -41,7 +41,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onClickN"
+            android:onClick="onClickNum"
             android:tag="1"
             android:text="1" />
 
@@ -50,7 +50,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onClickN"
+            android:onClick="onClickNum"
             android:text="2" />
 
         <Button
@@ -58,7 +58,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onClickN"
+            android:onClick="onClickNum"
             android:text="3" />
 
         <Button
@@ -148,7 +148,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onClickTButt"
+            android:onClick="onClickTButton"
             android:text="m" />
 
         <Button
@@ -197,7 +197,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onClickTButt"
+            android:onClick="onClickTButton"
             android:text="s" />
 
         <Button
@@ -246,7 +246,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="onClickTButt"
+            android:onClick="onClickTButton"
             android:text="ms" />
 
         <Button
@@ -258,4 +258,5 @@
             android:text="@string/division" />
     </LinearLayout>
 
+    
 </RelativeLayout>
